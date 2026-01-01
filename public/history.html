@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartSummary - Historique</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="logo-container">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="smart-summary-logo">
+          <defs>
+            <linearGradient id="gradBrain" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradRing" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <path fill="none" stroke="url(#gradBrain)" stroke-width="2.5" d="M 60 70 Q 50 60 50 80 Q 50 95 60 100 Q 65 102 70 100 Q 75 98 75 85 Q 75 70 65 65 Z" />
+          <path fill="none" stroke="url(#gradBrain)" stroke-width="2.5" d="M 140 70 Q 150 60 150 80 Q 150 95 140 100 Q 135 102 130 100 Q 125 98 125 85 Q 125 70 135 65 Z" />
+          <circle fill="url(#gradBrain)" cx="65" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="80" cy="80" r="2" />
+          <circle fill="url(#gradBrain)" cx="100" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="120" cy="80" r="2" />
+          <circle fill="url(#gradBrain)" cx="135" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="70" cy="95" r="2" />
+          <circle fill="url(#gradBrain)" cx="100" cy="98" r="2" />
+          <circle fill="url(#gradBrain)" cx="130" cy="95" r="2" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="65" y1="75" x2="80" y2="80" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="80" y1="80" x2="100" y2="75" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="100" y1="75" x2="120" y2="80" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="120" y1="80" x2="135" y2="75" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="70" y1="95" x2="100" y2="98" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="100" y1="98" x2="130" y2="95" />
+          <path fill="none" stroke="url(#gradRing)" stroke-width="3" stroke-linecap="round" d="M 70 140 A 60 25 0 0 1 130 140" stroke-dasharray="95,120" />
+          <circle cx="100" cy="100" r="95" fill="none" stroke="url(#gradRing)" stroke-width="0.5" opacity="0.3" stroke-dasharray="300" />
+        </svg>
+        <h1>SmartSummary</h1>
+      </div>
+      <div class="nav-buttons">
+        <a href="/dashboard.html" class="nav-link">← Retour</a>
+        <a href="/record.html" class="nav-link">🎙️ Nouvel enregistrement</a>
+      </div>
+      <div>
+        <span id="currentUser"></span>
+        <button id="logoutBtn">Déconnexion</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>📚 Mes Sessions</h2>
+      <div id="sessionsList" class="items-grid">
+        <p class="empty-state">Chargement...</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="auth-check.js"></script>
+  <script>
+    const sessionsList = document.getElementById("sessionsList");
+    const currentUserSpan = document.getElementById("currentUser");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    // Auth checked by auth-check.js
+    const userJson = localStorage.getItem("smartsummary_user");
+    if (userJson && currentUserSpan) {
+      try {
+        const user = JSON.parse(userJson);
+        currentUserSpan.textContent = user.name + " (" + user.email + ")";
+      } catch (e) {
+        console.error("Error parsing user:", e);
+      }
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        const refreshToken = localStorage.getItem("smartsummary_refreshToken");
+        try {
+          if (refreshToken) {
+            await fetch("/api/logout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refreshToken }),
+            });
+          }
+        } catch (err) {
+          console.error("Logout error:", err);
+        }
+        localStorage.removeItem("smartsummary_accessToken");
+        localStorage.removeItem("smartsummary_refreshToken");
+        localStorage.removeItem("smartsummary_user");
+        window.location.href = "/";
+      });
+    }
+
+    async function loadSessions() {
+      try {
+        const accessToken = localStorage.getItem("smartsummary_accessToken");
+        if (!accessToken) {
+          window.location.href = "/";
+          return;
+        }
+
+        const res = await fetch("/api/sessions", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (res.status === 401) {
+          window.location.href = "/";
+          return;
+        }
+
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || "Erreur");
+
+        if (json.sessions.length === 0) {
+          sessionsList.innerHTML = '<p class="empty-state">Aucune session pour le moment. <a href="/record.html">Créer une session</a></p>';
+          return;
+        }
+
+        sessionsList.innerHTML = json.sessions.map((session) => {
+          const date = new Date(session.createdAt).toLocaleString("fr-FR");
+          return `
+            <div class="item-card">
+              <h3>${session.title || "Sans titre"}</h3>
+              <p class="item-date">${date}</p>
+              <div style="margin-top: 1rem;">
+                <a href="/session.html?id=${session.id}" class="btn-primary" style="display: inline-block; text-decoration: none; margin-right: 0.5rem;">Voir</a>
+                <button class="btn-secondary" onclick="deleteSession(${session.id}, '${session.title || "cette session"}')">Supprimer</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        sessionsList.innerHTML = `<p class="empty-state error">Erreur: ${err.message}</p>`;
+      }
+    }
+
+    async function deleteSession(id, title) {
+      if (!confirm(`Êtes-vous sûr de vouloir supprimer "${title}" ? Cette action est irréversible.`)) {
+        return;
+      }
+
+      try {
+        const accessToken = localStorage.getItem("smartsummary_accessToken");
+        const res = await fetch(`/api/sessions/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (res.ok) {
+          loadSessions();
+        } else {
+          const json = await res.json();
+          alert("Erreur: " + (json.error || "Échec de la suppression"));
+        }
+      } catch (err) {
+        alert("Erreur: " + err.message);
+      }
+    }
+
+    window.deleteSession = deleteSession;
+    loadSessions();
+  </script>
+</body>
+</html>
+

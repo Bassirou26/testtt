@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartSummary - Enregistrement</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="logo-container">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="smart-summary-logo">
+          <defs>
+            <linearGradient id="gradBrain" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradRing" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <path fill="none" stroke="url(#gradBrain)" stroke-width="2.5" d="M 60 70 Q 50 60 50 80 Q 50 95 60 100 Q 65 102 70 100 Q 75 98 75 85 Q 75 70 65 65 Z" />
+          <path fill="none" stroke="url(#gradBrain)" stroke-width="2.5" d="M 140 70 Q 150 60 150 80 Q 150 95 140 100 Q 135 102 130 100 Q 125 98 125 85 Q 125 70 135 65 Z" />
+          <circle fill="url(#gradBrain)" cx="65" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="80" cy="80" r="2" />
+          <circle fill="url(#gradBrain)" cx="100" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="120" cy="80" r="2" />
+          <circle fill="url(#gradBrain)" cx="135" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="70" cy="95" r="2" />
+          <circle fill="url(#gradBrain)" cx="100" cy="98" r="2" />
+          <circle fill="url(#gradBrain)" cx="130" cy="95" r="2" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="65" y1="75" x2="80" y2="80" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="80" y1="80" x2="100" y2="75" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="100" y1="75" x2="120" y2="80" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="120" y1="80" x2="135" y2="75" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="70" y1="95" x2="100" y2="98" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="100" y1="98" x2="130" y2="95" />
+          <path fill="none" stroke="url(#gradRing)" stroke-width="3" stroke-linecap="round" d="M 70 140 A 60 25 0 0 1 130 140" stroke-dasharray="95,120" />
+          <circle cx="100" cy="100" r="95" fill="none" stroke="url(#gradRing)" stroke-width="0.5" opacity="0.3" stroke-dasharray="300" />
+        </svg>
+        <h1>SmartSummary</h1>
+      </div>
+      <div class="nav-buttons">
+        <a href="/dashboard.html" class="nav-link">← Retour</a>
+        <a href="/history.html" class="nav-link">📚 Historique</a>
+      </div>
+      <div>
+        <span id="currentUser"></span>
+        <button id="logoutBtn">Déconnexion</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>🎙️ Enregistrement en temps réel</h2>
+      <div style="margin-bottom: 1rem;">
+        <label>Titre de la session
+          <input type="text" id="sessionTitle" placeholder="Ex: Cours de Mathématiques - Chapitre 3" style="width: 100%; margin-top: 0.5rem;" />
+        </label>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label>
+          <input type="checkbox" id="isMeetingMode" /> Mode Réunion (pour comptes-rendus professionnels)
+        </label>
+      </div>
+      <div class="recorder">
+        <button id="recordBtn" class="btn-primary">🎙️ Démarrer l'enregistrement</button>
+        <button id="stopBtn" class="btn-secondary" disabled>⏹️ Arrêter</button>
+        <span id="recStatus">Inactif</span>
+      </div>
+      <div id="transcriptArea" style="margin-top: 2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; min-height: 200px; max-height: 400px; overflow-y: auto;">
+        <p style="color: var(--text-secondary); font-style: italic;">La transcription apparaîtra ici en temps réel...</p>
+      </div>
+      <div id="sessionInfo" style="margin-top: 1rem; display: none;">
+        <p>Session créée: <span id="sessionId"></span></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="auth-check.js"></script>
+  <script src="record.js"></script>
+</body>
+</html>
+

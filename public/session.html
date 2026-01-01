@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartSummary - Session</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="logo-container">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="smart-summary-logo">
+          <defs>
+            <linearGradient id="gradBrain" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradRing" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <path fill="none" stroke="url(#gradBrain)" stroke-width="2.5" d="M 60 70 Q 50 60 50 80 Q 50 95 60 100 Q 65 102 70 100 Q 75 98 75 85 Q 75 70 65 65 Z" />
+          <path fill="none" stroke="url(#gradBrain)" stroke-width="2.5" d="M 140 70 Q 150 60 150 80 Q 150 95 140 100 Q 135 102 130 100 Q 125 98 125 85 Q 125 70 135 65 Z" />
+          <circle fill="url(#gradBrain)" cx="65" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="80" cy="80" r="2" />
+          <circle fill="url(#gradBrain)" cx="100" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="120" cy="80" r="2" />
+          <circle fill="url(#gradBrain)" cx="135" cy="75" r="2" />
+          <circle fill="url(#gradBrain)" cx="70" cy="95" r="2" />
+          <circle fill="url(#gradBrain)" cx="100" cy="98" r="2" />
+          <circle fill="url(#gradBrain)" cx="130" cy="95" r="2" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="65" y1="75" x2="80" y2="80" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="80" y1="80" x2="100" y2="75" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="100" y1="75" x2="120" y2="80" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="120" y1="80" x2="135" y2="75" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="70" y1="95" x2="100" y2="98" />
+          <line stroke="url(#gradBrain)" stroke-width="1.5" x1="100" y1="98" x2="130" y2="95" />
+          <path fill="none" stroke="url(#gradRing)" stroke-width="3" stroke-linecap="round" d="M 70 140 A 60 25 0 0 1 130 140" stroke-dasharray="95,120" />
+          <circle cx="100" cy="100" r="95" fill="none" stroke="url(#gradRing)" stroke-width="0.5" opacity="0.3" stroke-dasharray="300" />
+        </svg>
+        <h1>SmartSummary</h1>
+      </div>
+      <div class="nav-buttons">
+        <a href="/history.html" class="nav-link">← Historique</a>
+      </div>
+      <div>
+        <span id="currentUser"></span>
+        <button id="logoutBtn">Déconnexion</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2 id="sessionTitle">Chargement...</h2>
+      <p id="sessionDate" style="color: var(--text-secondary); margin-bottom: 2rem;"></p>
+
+      <div style="margin-bottom: 2rem;">
+        <h3>📝 Transcription</h3>
+        <div id="transcriptContent" style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; min-height: 100px; white-space: pre-wrap;"></div>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <h3>📄 Résumés</h3>
+        <div style="margin-bottom: 1rem;">
+          <button class="btn-primary" onclick="generateSummary('short')">Générer Résumé Court</button>
+          <button class="btn-primary" onclick="generateSummary('detailed')">Générer Résumé Détaillé</button>
+          <button class="btn-primary" onclick="generateSummary('keywords')">Générer Mots-clés</button>
+        </div>
+        <div id="summariesList"></div>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <h3>🎯 Quiz</h3>
+        <div style="margin-bottom: 1rem;">
+          <button class="btn-primary" onclick="generateQuiz()">Générer Quiz</button>
+        </div>
+        <div id="quizArea"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="auth-check.js"></script>
+  <script>
+    const sessionTitleEl = document.getElementById("sessionTitle");
+    const sessionDateEl = document.getElementById("sessionDate");
+    const transcriptContent = document.getElementById("transcriptContent");
+    const summariesList = document.getElementById("summariesList");
+    const quizArea = document.getElementById("quizArea");
+    const currentUserSpan = document.getElementById("currentUser");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get("id");
+
+    if (!sessionId) {
+      alert("Session ID manquant");
+      window.location.href = "/history.html";
+    }
+
+    // Auth checked by auth-check.js
+    const userJson = localStorage.getItem("smartsummary_user");
+    if (userJson && currentUserSpan) {
+      try {
+        const user = JSON.parse(userJson);
+        currentUserSpan.textContent = user.name + " (" + user.email + ")";
+      } catch (e) {
+        console.error("Error parsing user:", e);
+      }
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        const refreshToken = localStorage.getItem("smartsummary_refreshToken");
+        try {
+          if (refreshToken) {
+            await fetch("/api/logout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refreshToken }),
+            });
+          }
+        } catch (err) {
+          console.error("Logout error:", err);
+        }
+        localStorage.removeItem("smartsummary_accessToken");
+        localStorage.removeItem("smartsummary_refreshToken");
+        localStorage.removeItem("smartsummary_user");
+        window.location.href = "/";
+      });
+    }
+
+    async function loadSession() {
+      try {
+        const accessToken = localStorage.getItem("smartsummary_accessToken");
+        const res = await fetch(`/api/sessions/${sessionId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.status === 401) {
+          window.location.href = "/";
+          return;
+        }
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error);
+        
+        sessionTitleEl.textContent = json.session.title || "Sans titre";
+        sessionDateEl.textContent = new Date(json.session.createdAt).toLocaleString("fr-FR");
+
+        // Load transcript
+        const transcriptRes = await fetch(`/api/sessions/${sessionId}/transcript`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (transcriptRes.ok) {
+          const transcriptData = await transcriptRes.json();
+          if (transcriptData.transcripts && transcriptData.transcripts.length > 0) {
+            transcriptContent.textContent = transcriptData.transcripts.map((t) => t.text).join(" ");
+          } else {
+            transcriptContent.textContent = "Aucune transcription disponible";
+          }
+        }
+
+        // Load summaries
+        await loadSummaries();
+      } catch (err) {
+        alert("Erreur: " + err.message);
+      }
+    }
+
+    async function loadSummaries() {
+      try {
+        const accessToken = localStorage.getItem("smartsummary_accessToken");
+        const res = await fetch(`/api/sessions/${sessionId}/summaries`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.summaries && json.summaries.length > 0) {
+            summariesList.innerHTML = json.summaries.map((summary) => {
+              const typeLabels = { short: "Court", detailed: "Détaillé", keywords: "Mots-clés" };
+              return `
+                <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong>${typeLabels[summary.type] || summary.type}</strong>
+                    <a href="/api/sessions/${sessionId}/summaries/${summary.id}/pdf" target="_blank" class="btn-primary" style="display: inline-block; text-decoration: none; padding: 0.25rem 0.75rem;">📥 PDF</a>
+                  </div>
+                  <div style="white-space: pre-wrap;">${summary.text}</div>
+                </div>
+              `;
+            }).join("");
+          } else {
+            summariesList.innerHTML = "<p style='color: var(--text-secondary);'>Aucun résumé généré</p>";
+          }
+        }
+      } catch (err) {
+        console.error("Error loading summaries:", err);
+      }
+    }
+
+    async function generateSummary(type) {
+      try {
+        const accessToken = localStorage.getItem("smartsummary_accessToken");
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Génération...";
+
+        const res = await fetch(`/api/sessions/${sessionId}/summaries`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type }),
+        });
+
+        if (res.ok) {
+          await loadSummaries();
+        } else {
+          const json = await res.json();
+          alert("Erreur: " + (json.error || "Échec de la génération"));
+        }
+
+        btn.disabled = false;
+        btn.textContent = originalText;
+      } catch (err) {
+        alert("Erreur: " + err.message);
+        event.target.disabled = false;
+      }
+    }
+
+    async function generateQuiz() {
+      try {
+        const accessToken = localStorage.getItem("smartsummary_accessToken");
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Génération...";
+
+        const res = await fetch(`/api/sessions/${sessionId}/quiz`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ numQuestions: 5 }),
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          displayQuiz(json.quiz);
+        } else {
+          const json = await res.json();
+          alert("Erreur: " + (json.error || "Échec de la génération"));
+        }
+
+        btn.disabled = false;
+        btn.textContent = originalText;
+      } catch (err) {
+        alert("Erreur: " + err.message);
+        event.target.disabled = false;
+      }
+    }
+
+    function displayQuiz(quiz) {
+      if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+        quizArea.innerHTML = "<p>Aucune question disponible</p>";
+        return;
+      }
+
+      let html = '<div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">';
+      quiz.questions.forEach((q, idx) => {
+        html += `
+          <div style="margin-bottom: 1.5rem;">
+            <p><strong>Question ${idx + 1}:</strong> ${q.question}</p>
+            <div style="margin-left: 1rem;">
+              ${q.options.map((opt, optIdx) => `
+                <label style="display: block; margin: 0.5rem 0;">
+                  <input type="radio" name="q${idx}" value="${optIdx}" />
+                  ${opt}
+                </label>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      });
+      html += '<button class="btn-primary" onclick="checkQuiz()">Vérifier les réponses</button>';
+      html += '</div>';
+      quizArea.innerHTML = html;
+      window.quizData = quiz;
+    }
+
+    function checkQuiz() {
+      if (!window.quizData) return;
+      const questions = window.quizData.questions;
+      let score = 0;
+      let html = '<div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">';
+      questions.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        const isCorrect = selected && parseInt(selected.value) === q.correct;
+        if (isCorrect) score++;
+        html += `
+          <div style="margin-bottom: 1rem; padding: 0.5rem; background: ${isCorrect ? 'var(--success)' : 'var(--error)'}; opacity: 0.3; border-radius: 4px;">
+            <p><strong>Q${idx + 1}:</strong> ${isCorrect ? '✅ Correct' : '❌ Incorrect'}</p>
+            ${!isCorrect ? `<p>Bonne réponse: ${q.options[q.correct]}</p>` : ''}
+          </div>
+        `;
+      });
+      html += `<p style="margin-top: 1rem; font-size: 1.2rem; font-weight: bold;">Score: ${score}/${questions.length}</p>`;
+      html += '</div>';
+      quizArea.innerHTML = html;
+    }
+
+    window.generateSummary = generateSummary;
+    window.generateQuiz = generateQuiz;
+    window.checkQuiz = checkQuiz;
+
+    loadSession();
+  </script>
+</body>
+</html>
+

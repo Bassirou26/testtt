@@ -1,0 +1,46 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="smart-summary-logo">
+  <defs>
+    <style>
+      .brain-outer { fill: none; stroke: url(#gradBrain); stroke-width: 2.5; }
+      .brain-dot { fill: url(#gradBrain); }
+      .ring { fill: none; stroke: url(#gradRing); stroke-width: 3; stroke-linecap: round; }
+    </style>
+    <linearGradient id="gradBrain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Brain outline -->
+  <path class="brain-outer" d="M 60 70 Q 50 60 50 80 Q 50 95 60 100 Q 65 102 70 100 Q 75 98 75 85 Q 75 70 65 65 Z" />
+  <path class="brain-outer" d="M 140 70 Q 150 60 150 80 Q 150 95 140 100 Q 135 102 130 100 Q 125 98 125 85 Q 125 70 135 65 Z" />
+  
+  <!-- Brain circuits -->
+  <circle class="brain-dot" cx="65" cy="75" r="2" />
+  <circle class="brain-dot" cx="80" cy="80" r="2" />
+  <circle class="brain-dot" cx="100" cy="75" r="2" />
+  <circle class="brain-dot" cx="120" cy="80" r="2" />
+  <circle class="brain-dot" cx="135" cy="75" r="2" />
+  
+  <circle class="brain-dot" cx="70" cy="95" r="2" />
+  <circle class="brain-dot" cx="100" cy="98" r="2" />
+  <circle class="brain-dot" cx="130" cy="95" r="2" />
+  
+  <!-- Connection lines between dots -->
+  <line class="brain-outer" x1="65" y1="75" x2="80" y2="80" stroke-width="1.5" />
+  <line class="brain-outer" x1="80" y1="80" x2="100" y2="75" stroke-width="1.5" />
+  <line class="brain-outer" x1="100" y1="75" x2="120" y2="80" stroke-width="1.5" />
+  <line class="brain-outer" x1="120" y1="80" x2="135" y2="75" stroke-width="1.5" />
+  <line class="brain-outer" x1="70" y1="95" x2="100" y2="98" stroke-width="1.5" />
+  <line class="brain-outer" x1="100" y1="98" x2="130" y2="95" stroke-width="1.5" />
+  
+  <!-- Orbiting ring -->
+  <path class="ring" d="M 70 140 A 60 25 0 0 1 130 140" stroke-dasharray="95,120" stroke-dashoffset="0" />
+  
+  <!-- Animated glow circle -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="url(#gradRing)" stroke-width="0.5" opacity="0.3" stroke-dasharray="300" stroke-dashoffset="0" class="glow-ring" />
+</svg>
